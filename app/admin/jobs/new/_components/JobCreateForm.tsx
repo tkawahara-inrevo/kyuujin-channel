@@ -170,7 +170,7 @@ export default function JobCreateForm() {
         </div>
 
         <div className="text-xs text-slate-500">
-          ※ まずは体験優先：入力は最小（タイトル必須）でOKだよ🐰✨
+          ※ まずは体験優先：入力は最小（タイトル必須）でOK
         </div>
       </div>
     </form>

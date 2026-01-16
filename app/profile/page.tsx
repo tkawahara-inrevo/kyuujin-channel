@@ -53,7 +53,7 @@ export default async function ProfilePage() {
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">プロフィール</h1>
-          <p className="mt-2 text-sm text-slate-600">会員情報と書類アップロード🫶</p>
+          <p className="mt-2 text-sm text-slate-600">会員情報と書類アップロード</p>
         </div>
 
         <div className="flex items-center gap-3">

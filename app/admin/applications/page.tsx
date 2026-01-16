@@ -167,7 +167,7 @@ export default async function AdminApplicationsPage({
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">応募者一覧</h1>
-            <p className="mt-2 text-sm text-slate-700">自社求人への応募だけが表示されます🫶</p>
+            <p className="mt-2 text-sm text-slate-700">自社求人への応募だけが表示されます</p>
           </div>
 
           <div className="flex flex-wrap gap-2">

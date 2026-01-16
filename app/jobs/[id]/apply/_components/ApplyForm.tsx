@@ -121,7 +121,7 @@ export default function ApplyForm({ jobId }: Props) {
                 <Link href="/profile" className="font-semibold text-blue-600 hover:underline">
                   プロフィール
                 </Link>
-                からアップしてね🫶
+                からアップしてね
               </div>
             </div>
           </label>
