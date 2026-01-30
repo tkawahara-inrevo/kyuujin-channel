@@ -18,7 +18,7 @@ function isUuid(s: string): boolean {
 type ApplicationRow = {
   id: string;
   organization_id: string;
-  applicant_user_id: string;
+  applicant_user_id: string | null;
 };
 
 type ConversationRow = {
@@ -58,30 +58,29 @@ export async function GET(req: Request) {
   }
 
   // Get or create conversation
-const { data: conv0, error: convErr } = await supabaseAdmin
-  .from("conversations")
-  .select("id,application_id,organization_id,applicant_user_id")
-  .eq("application_id", application_id)
-  .maybeSingle<ConversationRow>();
-
-if (convErr) return NextResponse.json({ error: convErr.message }, { status: 500 });
-
-let conv = conv0;
-
-if (!conv) {
-  const { data: created, error: cErr } = await supabaseAdmin
+  const { data: conv0, error: convErr } = await supabaseAdmin
     .from("conversations")
-    .insert({
-      application_id,
-      organization_id: app.organization_id,
-      applicant_user_id: app.applicant_user_id,
-    })
     .select("id,application_id,organization_id,applicant_user_id")
+    .eq("application_id", application_id)
     .maybeSingle<ConversationRow>();
 
-  if (cErr || !created) return NextResponse.json({ error: cErr?.message ?? "create failed" }, { status: 500 });
-  conv = created;
-}
+  if (convErr) return NextResponse.json({ error: convErr.message }, { status: 500 });
+
+  let conv = conv0;
+  if (!conv) {
+    const { data: created, error: cErr } = await supabaseAdmin
+      .from("conversations")
+      .insert({
+        application_id,
+        organization_id: app.organization_id,
+        applicant_user_id: app.applicant_user_id,
+      })
+      .select("id,application_id,organization_id,applicant_user_id")
+      .maybeSingle<ConversationRow>();
+
+    if (cErr || !created) return NextResponse.json({ error: cErr?.message ?? "create failed" }, { status: 500 });
+    conv = created;
+  }
 
   const { data: messages, error: mErr } = await supabaseAdmin
     .from("messages")
@@ -129,12 +128,13 @@ export async function POST(req: Request) {
   }
 
   // Ensure conversation exists
-  let { data: conv } = await supabaseAdmin
+  const { data: conv0 } = await supabaseAdmin
     .from("conversations")
     .select("id,application_id,organization_id,applicant_user_id")
     .eq("application_id", application_id)
     .maybeSingle<ConversationRow>();
 
+  let conv = conv0;
   if (!conv) {
     const { data: created, error: cErr } = await supabaseAdmin
       .from("conversations")

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 
 type Msg = {
   id: string;
@@ -19,7 +18,6 @@ function fmt(dt: string) {
 }
 
 export default function ChatThread({ applicationId }: { applicationId: string }) {
-  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [text, setText] = useState("");
@@ -42,7 +40,6 @@ export default function ChatThread({ applicationId }: { applicationId: string })
 
   useEffect(() => {
     load();
-    // 超ライト版：5秒ポーリング
     const t = setInterval(load, 5000);
     return () => clearInterval(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -64,24 +61,14 @@ export default function ChatThread({ applicationId }: { applicationId: string })
       }
       setText("");
       await load();
-      router.refresh();
     } finally {
       setSending(false);
     }
   };
 
   return (
-    <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">チャット</h2>
-        <button
-          type="button"
-          onClick={load}
-          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold hover:bg-slate-50"
-        >
-          更新
-        </button>
-      </div>
+    <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <h2 className="text-lg font-extrabold">企業とのメッセージ</h2>
 
       <div className="mt-4 h-[420px] overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-3">
         {loading ? (
@@ -91,19 +78,14 @@ export default function ChatThread({ applicationId }: { applicationId: string })
         ) : (
           <div className="space-y-3">
             {messages.map((m) => (
-              <div
-                key={m.id}
-                className={`flex ${m.sender_type === "applicant" ? "justify-end" : "justify-start"}`}
-              >
+              <div key={m.id} className={`flex ${m.sender_type === "applicant" ? "justify-end" : "justify-start"}`}>
                 <div
                   className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm shadow-sm ${
                     m.sender_type === "applicant" ? "bg-blue-600 text-white" : "bg-white text-slate-900"
                   }`}
                 >
                   <div className="whitespace-pre-wrap break-words">{m.body}</div>
-                  <div
-                    className={`mt-1 text-[11px] ${m.sender_type === "applicant" ? "text-blue-100" : "text-slate-500"}`}
-                  >
+                  <div className={`mt-1 text-[11px] ${m.sender_type === "applicant" ? "text-blue-100" : "text-slate-500"}`}>
                     {fmt(m.created_at)}
                   </div>
                 </div>
@@ -118,7 +100,7 @@ export default function ChatThread({ applicationId }: { applicationId: string })
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="メッセージを書く…"
+          placeholder="企業へメッセージを書く…"
           className="min-h-[44px] flex-1 resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
         />
         <button
@@ -130,6 +112,6 @@ export default function ChatThread({ applicationId }: { applicationId: string })
           送信
         </button>
       </div>
-    </div>
+    </section>
   );
 }

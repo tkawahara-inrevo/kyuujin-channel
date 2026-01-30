@@ -13,18 +13,12 @@ type JobDetail = {
   employment_type: string | null;
   status: "draft" | "published" | "closed";
   created_at: string;
-  organization: { name: string; slug: string } | { name: string; slug: string }[] | null;
+  organization: { name: string } | { name: string }[] | null;
 };
 
 function orgName(org: JobDetail["organization"]): string {
   if (!org) return "（企業名未設定）";
   return Array.isArray(org) ? (org[0]?.name ?? "（企業名未設定）") : org.name;
-}
-
-function orgSlug(org: JobDetail["organization"]): string | null {
-  if (!org) return null;
-  const o = Array.isArray(org) ? org[0] ?? null : org;
-  return o?.slug ?? null;
 }
 
 export default async function JobDetailPage({
@@ -54,7 +48,7 @@ export default async function JobDetailPage({
       employment_type,
       status,
       created_at,
-      organization:organizations(name,slug)
+      organization:organizations(name)
     `
     )
     .eq("id", id)
@@ -97,6 +91,7 @@ export default async function JobDetailPage({
 
   // ✅ 応募済みチェック（ログイン時のみ）
   let alreadyApplied = false;
+  let appliedApplicationId: string | null = null;
   if (user) {
     const { data: appliedRow } = await supabaseAdmin
       .from("applications")
@@ -107,6 +102,7 @@ export default async function JobDetailPage({
       .maybeSingle();
 
     alreadyApplied = !!appliedRow;
+    appliedApplicationId = appliedRow?.id ?? null;
   }
 
   // ✅ お気に入り済みチェック（ログイン時のみ）
@@ -133,15 +129,7 @@ export default async function JobDetailPage({
         {/* メイン */}
         <section className="md:col-span-2 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <h1 className="text-3xl font-extrabold tracking-tight">{job.title}</h1>
-          <div className="mt-2 text-sm text-slate-700">
-            {orgSlug(job.organization) ? (
-              <Link href={`/organizations/${orgSlug(job.organization)}`} className="font-semibold text-blue-600 hover:underline">
-                {orgName(job.organization)}
-              </Link>
-            ) : (
-              <span>{orgName(job.organization)}</span>
-            )}
-          </div>
+          <div className="mt-2 text-sm text-slate-700">{orgName(job.organization)}</div>
 
           <div className="mt-6 flex flex-wrap gap-2 text-sm text-slate-700">
             <span className="rounded-full bg-slate-100 px-3 py-1">
@@ -179,6 +167,14 @@ export default async function JobDetailPage({
               <div className="mt-6 block rounded-2xl bg-slate-200 py-4 text-center text-base font-extrabold text-slate-600">
                 応募済み
               </div>
+              {appliedApplicationId ? (
+                <Link
+                  href={`/my/applications/${appliedApplicationId}`}
+                  className="mt-3 block rounded-2xl bg-blue-600 py-3 text-center text-sm font-extrabold text-white hover:bg-blue-700"
+                >
+                  💬 メッセージを見る
+                </Link>
+              ) : null}
               <Link
                 href="/my/applications"
                 className="mt-3 block rounded-2xl border border-slate-200 bg-white py-3 text-center text-sm font-bold text-slate-700 hover:bg-slate-50"
