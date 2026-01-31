@@ -1,34 +1,17 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import ChatThread from "./ChatThread";
 
-// 切り分け優先：キャッシュや静的最適化の影響を受けにくくする
+// 切り分け優先：静的化/キャッシュ影響を避ける（原因確定したら消してOK）
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
-
-function isValidUuid(v: string) {
-  // UUID v4 だけに絞らず、一般的なUUID形式を許容
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
-}
 
 export default async function MyMessageThreadPage({
   params,
 }: {
-  // “どっちのビルド/ルート名でも拾える” ために両対応
-  params: { application_id?: string; applicationId?: string };
+  params: { application_id?: string };
 }) {
-  const application_id = params.application_id ?? params.applicationId ?? "";
-
-  // ここで undefined / "undefined" を確実に弾く（クエリ400連打の元を断つ）
-  if (!application_id || application_id === "undefined") {
-    notFound();
-  }
-
-  // UUIDっぽくない値が来たら即notFound（変な値でAPI叩かない）
-  if (!isValidUuid(application_id)) {
-    notFound();
-  }
+  const application_id = params?.application_id;
 
   const supabase = await createSupabaseServerClient();
   const {
@@ -45,19 +28,23 @@ export default async function MyMessageThreadPage({
     );
   }
 
-  return (
-    <main className="mx-auto max-w-3xl px-4 py-8 text-slate-900">
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex items-end justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">メッセージ</h1>
-            <p className="mt-2 text-sm text-slate-700">応募ID: {application_id}</p>
-            {/* 切り分け用：必要なら一時的に表示（問題解決後に消してOK）
-            <p className="mt-1 text-xs text-slate-500">params: {JSON.stringify(params)}</p>
-            */}
+  // ここが今回の切り分けポイント：画面で params を確認できるようにする
+  if (!application_id || application_id === "undefined") {
+    return (
+      <main className="mx-auto max-w-3xl px-4 py-8 text-slate-900">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h1 className="text-2xl font-bold">メッセージ</h1>
+          <p className="mt-2 text-sm text-slate-700">
+            応募IDが取得できませんでした🥺
+          </p>
+
+          <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-700">
+            <div className="font-semibold">debug</div>
+            <div className="mt-2">params: {JSON.stringify(params)}</div>
+            <div className="mt-1">application_id: {String(application_id)}</div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="mt-6">
             <Link
               href="/my/messages"
               className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50"
@@ -65,6 +52,31 @@ export default async function MyMessageThreadPage({
               ← 一覧へ
             </Link>
           </div>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="mx-auto max-w-3xl px-4 py-8 text-slate-900">
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex items-end justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">メッセージ</h1>
+            <p className="mt-2 text-sm text-slate-700">応募ID: {application_id}</p>
+
+            {/* デバッグ：一時表示（直ったら消してOK） */}
+            <p className="mt-1 text-xs text-slate-500">
+              params: {JSON.stringify(params)}
+            </p>
+          </div>
+
+          <Link
+            href="/my/messages"
+            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50"
+          >
+            ← 一覧へ
+          </Link>
         </div>
 
         <ChatThread applicationId={application_id} />
