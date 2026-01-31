@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import StatusBadge from "../StatusBadge"; // ✅ 修正（./ → ../）
+import ChatThread from "./ChatThread";
 
 type AdminUserRowLite = {
   role: "admin" | "client_admin";
@@ -275,6 +276,9 @@ export default async function AdminApplicationDetailPage({
           )}
         </div>
       </section>
+
+      {/* Step3: Chat */}
+      <ChatThread applicationId={detail.id} />
     </main>
   );
 }

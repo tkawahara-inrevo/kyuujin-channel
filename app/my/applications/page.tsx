@@ -119,9 +119,8 @@ export default async function MyApplicationsPage() {
           </div>
         ) : (
           items.map((x) => {
-            // ✅ 応募（application）詳細へ遷移させる（メッセージは応募単位）
-            const href = `/my/applications/${x.applicationId}`;
-            const clickable = true;
+            const href = x.applicationId ? `/my/messages/${x.applicationId}` : "#";
+            const clickable = !!x.jobId;
 
             return (
               <Link
@@ -136,16 +135,6 @@ export default async function MyApplicationsPage() {
                   <div>
                     <div className="text-lg font-extrabold">{x.jobTitle}</div>
                     <div className="mt-1 text-sm text-slate-600">{x.orgName}</div>
-                    {x.jobId ? (
-                      <div className="mt-2">
-                        <Link
-                          href={`/jobs/${x.jobId}`}
-                          className="text-sm font-semibold text-blue-600 hover:underline"
-                        >
-                          求人詳細を見る
-                        </Link>
-                      </div>
-                    ) : null}
                   </div>
 
                   <div className="text-right text-sm text-slate-600">

@@ -18,7 +18,7 @@ function isUuid(s: string): boolean {
 type ApplicationRow = {
   id: string;
   organization_id: string;
-  applicant_user_id: string | null;
+  applicant_user_id: string;
 };
 
 type ConversationRow = {
@@ -58,7 +58,7 @@ export async function GET(req: Request) {
   }
 
   // Get or create conversation
-  const { data: conv0, error: convErr } = await supabaseAdmin
+  let { data: conv, error: convErr } = await supabaseAdmin
     .from("conversations")
     .select("id,application_id,organization_id,applicant_user_id")
     .eq("application_id", application_id)
@@ -66,7 +66,6 @@ export async function GET(req: Request) {
 
   if (convErr) return NextResponse.json({ error: convErr.message }, { status: 500 });
 
-  let conv = conv0;
   if (!conv) {
     const { data: created, error: cErr } = await supabaseAdmin
       .from("conversations")
@@ -128,13 +127,12 @@ export async function POST(req: Request) {
   }
 
   // Ensure conversation exists
-  const { data: conv0 } = await supabaseAdmin
+  let { data: conv } = await supabaseAdmin
     .from("conversations")
     .select("id,application_id,organization_id,applicant_user_id")
     .eq("application_id", application_id)
     .maybeSingle<ConversationRow>();
 
-  let conv = conv0;
   if (!conv) {
     const { data: created, error: cErr } = await supabaseAdmin
       .from("conversations")
