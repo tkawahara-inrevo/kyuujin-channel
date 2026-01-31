@@ -57,12 +57,13 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  // Get or create conversation
-  let { data: conv, error: convErr } = await supabaseAdmin
-    .from("conversations")
-    .select("id,application_id,organization_id,applicant_user_id")
-    .eq("application_id", application_id)
-    .maybeSingle<ConversationRow>();
+const { data, error: convErr } = await supabaseAdmin
+  .from("conversations")
+  .select("id,application_id,organization_id,applicant_user_id")
+  .eq("application_id", application_id)
+  .maybeSingle<ConversationRow>();
+
+let conv = data; // ← ここで let にする
 
   if (convErr) return NextResponse.json({ error: convErr.message }, { status: 500 });
 
