@@ -1,18 +1,13 @@
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import ChatThread from "./ChatThread";
-import { headers } from "next/headers"; // ← これ追加
 
 export default async function MyMessageThreadPage({
-
   params,
 }: {
-  params: { application_id: string };
+  params: Promise<{ application_id: string }>;
 }) {
-  const { application_id } = params;
-  const h = await headers();
-  console.log("DBG next-url:", h.get("next-url"));
-  console.log("DBG params:", params);
+  const { application_id } = await params;
 
   const supabase = await createSupabaseServerClient();
   const {
@@ -36,10 +31,6 @@ export default async function MyMessageThreadPage({
           <div>
             <h1 className="text-2xl font-bold">メッセージ</h1>
             <p className="mt-2 text-sm text-slate-700">応募ID: {application_id}</p>
-            <pre className="mt-2 rounded bg-slate-50 p-2 text-xs">
-  {JSON.stringify(params, null, 2)}
-</pre>
-
           </div>
           <div className="flex gap-2">
             <Link
@@ -50,7 +41,7 @@ export default async function MyMessageThreadPage({
             </Link>
           </div>
         </div>
-        
+
         <ChatThread applicationId={application_id} />
       </div>
     </main>
