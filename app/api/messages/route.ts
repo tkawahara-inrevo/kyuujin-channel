@@ -16,7 +16,6 @@ function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 }
 
-
 type ApplicationRow = {
   id: string;
   organization_id: string;
@@ -30,9 +29,19 @@ type ConversationRow = {
   applicant_user_id: string;
 };
 
+type MessageRow = {
+  id: string;
+  conversation_id: string;
+  sender_type: "applicant" | "company";
+  sender_user_id: string;
+  body: string;
+  created_at: string;
+};
+
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const application_id = (url.searchParams.get("application_id") ?? "").trim();
+
   if (!isUuid(application_id)) {
     return NextResponse.json({ error: "application_id is required" }, { status: 400 });
   }
@@ -41,6 +50,7 @@ export async function GET(req: Request) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   // Load application (service role) then authorize at the API layer.
@@ -55,17 +65,19 @@ export async function GET(req: Request) {
   const adminAccess = await getAdminAccess(user.id);
   const isCompany = adminAccess.ok && adminAccess.organization_id === app.organization_id;
   const isApplicant = app.applicant_user_id === user.id;
+
   if (!isCompany && !isApplicant) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-const { data, error: convErr } = await supabaseAdmin
-  .from("conversations")
-  .select("id,application_id,organization_id,applicant_user_id")
-  .eq("application_id", application_id)
-  .maybeSingle<ConversationRow>();
+  // Get or create conversation
+  const { data, error: convErr } = await supabaseAdmin
+    .from("conversations")
+    .select("id,application_id,organization_id,applicant_user_id")
+    .eq("application_id", application_id)
+    .maybeSingle<ConversationRow>();
 
-let conv = data; // ← ここで let にする
+  let conv = data;
 
   if (convErr) return NextResponse.json({ error: convErr.message }, { status: 500 });
 
@@ -80,7 +92,9 @@ let conv = data; // ← ここで let にする
       .select("id,application_id,organization_id,applicant_user_id")
       .maybeSingle<ConversationRow>();
 
-    if (cErr || !created) return NextResponse.json({ error: cErr?.message ?? "create failed" }, { status: 500 });
+    if (cErr || !created) {
+      return NextResponse.json({ error: cErr?.message ?? "create failed" }, { status: 500 });
+    }
     conv = created;
   }
 
@@ -92,7 +106,11 @@ let conv = data; // ← ここで let にする
 
   if (mErr) return NextResponse.json({ error: mErr.message }, { status: 500 });
 
-  return NextResponse.json({ conversation: conv, messages: messages ?? [] });
+  // ★ ここがポイント：conversation_id をトップレベルで返す
+  return NextResponse.json({
+    conversation_id: conv.id,
+    messages: (messages ?? []) as MessageRow[],
+  });
 }
 
 export async function POST(req: Request) {
@@ -100,6 +118,7 @@ export async function POST(req: Request) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   let raw: unknown;
@@ -108,10 +127,12 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
+
   if (!isRecord(raw)) return NextResponse.json({ error: "Invalid body" }, { status: 400 });
 
   const application_id = getString(raw["application_id"]).trim();
   const body = getString(raw["body"]).trim();
+
   if (!isUuid(application_id)) return NextResponse.json({ error: "application_id is required" }, { status: 400 });
   if (!body) return NextResponse.json({ error: "body is required" }, { status: 400 });
 
@@ -120,21 +141,27 @@ export async function POST(req: Request) {
     .select("id,organization_id,applicant_user_id")
     .eq("id", application_id)
     .maybeSingle<ApplicationRow>();
+
   if (appErr || !app) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const adminAccess = await getAdminAccess(user.id);
   const isCompany = adminAccess.ok && adminAccess.organization_id === app.organization_id;
   const isApplicant = app.applicant_user_id === user.id;
+
   if (!isCompany && !isApplicant) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   // Ensure conversation exists
-  let { data: conv } = await supabaseAdmin
+  const { data, error: convErr } = await supabaseAdmin
     .from("conversations")
     .select("id,application_id,organization_id,applicant_user_id")
     .eq("application_id", application_id)
     .maybeSingle<ConversationRow>();
+
+  let conv = data;
+
+  if (convErr) return NextResponse.json({ error: convErr.message }, { status: 500 });
 
   if (!conv) {
     const { data: created, error: cErr } = await supabaseAdmin
@@ -146,11 +173,14 @@ export async function POST(req: Request) {
       })
       .select("id,application_id,organization_id,applicant_user_id")
       .maybeSingle<ConversationRow>();
-    if (cErr || !created) return NextResponse.json({ error: cErr?.message ?? "create failed" }, { status: 500 });
+
+    if (cErr || !created) {
+      return NextResponse.json({ error: cErr?.message ?? "create failed" }, { status: 500 });
+    }
     conv = created;
   }
 
-  const sender_type = isCompany ? "company" : "applicant";
+  const sender_type: MessageRow["sender_type"] = isCompany ? "company" : "applicant";
 
   const { data: inserted, error: insErr } = await supabaseAdmin
     .from("messages")
@@ -161,9 +191,15 @@ export async function POST(req: Request) {
       body,
     })
     .select("id,conversation_id,sender_type,sender_user_id,body,created_at")
-    .maybeSingle();
+    .maybeSingle<MessageRow>();
 
-  if (insErr || !inserted) return NextResponse.json({ error: insErr?.message ?? "insert failed" }, { status: 500 });
+  if (insErr || !inserted) {
+    return NextResponse.json({ error: insErr?.message ?? "insert failed" }, { status: 500 });
+  }
 
-  return NextResponse.json({ ok: true, message: inserted }, { status: 201 });
+  // ★ ここがポイント：POSTでも conversation_id を返す（購読開始の保険）
+  return NextResponse.json(
+    { ok: true, conversation_id: conv.id, message: inserted },
+    { status: 201 }
+  );
 }
