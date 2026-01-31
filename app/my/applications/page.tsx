@@ -119,7 +119,7 @@ export default async function MyApplicationsPage() {
           </div>
         ) : (
           items.map((x) => {
-            const href = x.applicationId ? `/my/messages/${x.applicationId}` : "#";
+            const href = x.jobId ? `/jobs/${x.jobId}` : "#";
             const clickable = !!x.jobId;
 
             return (

@@ -155,6 +155,13 @@ export default async function HomePage() {
 >
   気になる
 </Link>
+<Link
+  href="/my/messages"
+  className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-slate-700 hover:bg-slate-50"
+>
+  メッセージ
+</Link>
+
 
     <Link
       href="/profile"
