@@ -5,9 +5,10 @@ import ChatThread from "./ChatThread";
 export default async function MyMessageThreadPage({
   params,
 }: {
-  params: Promise<{ application_id: string }>;
+  params: { application_id: string };
 }) {
-  const { application_id } = await params;
+  const { application_id } = params;
+
 
   const supabase = await createSupabaseServerClient();
   const {
