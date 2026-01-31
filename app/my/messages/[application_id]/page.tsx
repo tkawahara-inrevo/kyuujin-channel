@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import ChatThread from "./ChatThread";
-
-
+import { headers } from "next/headers"; // ← これ追加
 
 export default async function MyMessageThreadPage({
 
@@ -11,6 +10,9 @@ export default async function MyMessageThreadPage({
   params: { application_id: string };
 }) {
   const { application_id } = params;
+  const h = await headers();
+  console.log("DBG next-url:", h.get("next-url"));
+  console.log("DBG params:", params);
 
   const supabase = await createSupabaseServerClient();
   const {
