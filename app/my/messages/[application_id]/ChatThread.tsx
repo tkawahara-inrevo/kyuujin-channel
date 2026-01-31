@@ -40,13 +40,14 @@ export default function ChatThread({ applicationId }: { applicationId: string })
     }
   };
 
-  useEffect(() => {
-    load();
-    // 超ライト版：5秒ポーリング
-    const t = setInterval(load, 5000);
-    return () => clearInterval(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [applicationId]);
+useEffect(() => {
+  if (!applicationId) return;
+
+  load();
+  const t = setInterval(load, 5000);
+  return () => clearInterval(t);
+}, [applicationId]);
+
 
   const send = async () => {
     if (!canSend) return;
