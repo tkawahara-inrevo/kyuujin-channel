@@ -34,6 +34,10 @@ export default async function MyMessageThreadPage({
           <div>
             <h1 className="text-2xl font-bold">メッセージ</h1>
             <p className="mt-2 text-sm text-slate-700">応募ID: {application_id}</p>
+            <pre className="mt-2 rounded bg-slate-50 p-2 text-xs">
+  {JSON.stringify(params, null, 2)}
+</pre>
+
           </div>
           <div className="flex gap-2">
             <Link
@@ -44,8 +48,7 @@ export default async function MyMessageThreadPage({
             </Link>
           </div>
         </div>
-        <div className="mb-2 rounded bg-yellow-100 p-2 text-xs font-bold">ROUTE: /my/messages/[application_id]</div>
-
+        
         <ChatThread applicationId={application_id} />
       </div>
     </main>
