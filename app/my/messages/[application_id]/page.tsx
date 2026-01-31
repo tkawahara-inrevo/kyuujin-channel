@@ -2,7 +2,10 @@ import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import ChatThread from "./ChatThread";
 
+
+
 export default async function MyMessageThreadPage({
+
   params,
 }: {
   params: { application_id: string };
@@ -41,6 +44,7 @@ export default async function MyMessageThreadPage({
             </Link>
           </div>
         </div>
+        <div className="mb-2 rounded bg-yellow-100 p-2 text-xs font-bold">ROUTE: /my/messages/[application_id]</div>
 
         <ChatThread applicationId={application_id} />
       </div>

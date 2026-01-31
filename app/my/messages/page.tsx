@@ -159,6 +159,7 @@ export default async function MyMessagesIndex() {
                         ステータス: <span className="font-bold">{a.status}</span>
                       </div>
                     </div>
+                    <div className="mb-2 rounded bg-yellow-100 p-2 text-xs font-bold">ROUTE: /my/messages/[application_id]</div>
 
                     <div className="flex shrink-0 flex-col items-end gap-2">
                       {hasNew ? (
