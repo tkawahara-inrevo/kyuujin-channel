@@ -27,9 +27,10 @@ function parseJobStatus(v: unknown): JobStatus {
   const s = typeof v === "string" ? v.trim() : "";
   return (allowedStatus as readonly string[]).includes(s) ? (s as JobStatus) : "draft";
 }
+
 function isUuid(s: string): boolean {
-  // ざっくりUUIDチェック（DBに投げる前に undefined/変なのを止める）
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
+  // UUIDの形式(8-4-4-4-12)だけ確認。version/variantは見ない
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 }
 
 async function getAuthClientAdmin() {
