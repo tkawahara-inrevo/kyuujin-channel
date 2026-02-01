@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { isUuidLoose } from "@/lib/validators/uuid";
 
 type AdminUserRow = {
   user_id: string;
@@ -26,11 +27,6 @@ function getNullableString(v: unknown): string | null {
 function parseJobStatus(v: unknown): JobStatus {
   const s = typeof v === "string" ? v.trim() : "";
   return (allowedStatus as readonly string[]).includes(s) ? (s as JobStatus) : "draft";
-}
-
-function isUuid(s: string): boolean {
-  // UUIDの形式(8-4-4-4-12)だけ確認。version/variantは見ない
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 }
 
 async function getAuthClientAdmin() {
@@ -59,7 +55,7 @@ export async function GET(
 ) {
   const { id } = await params;
 
-  if (!id || !isUuid(id)) {
+  if (!id || !isUuidLoose(id)){
     return NextResponse.json({ error: `Invalid id: ${id}` }, { status: 400 });
   }
 
@@ -88,7 +84,7 @@ export async function PATCH(
 ) {
   const { id } = await params;
 
-  if (!id || !isUuid(id)) {
+  if (!id || !isUuidLoose(id)){
     return NextResponse.json({ error: `Invalid id: ${id}` }, { status: 400 });
   }
 

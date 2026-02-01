@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-
-function isUuid(s: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
-}
+import { isUuidLoose } from "@/lib/validators/uuid";
 
 export async function DELETE(
   _req: Request,
@@ -12,7 +9,7 @@ export async function DELETE(
 ) {
   const { job_id } = await params;
 
-  if (!job_id || !isUuid(job_id)) {
+  if (!job_id || !isUuidLoose(job_id)){
     return NextResponse.json({ error: "job_id is invalid" }, { status: 400 });
   }
 

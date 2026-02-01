@@ -2,12 +2,8 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { isUuidLoose } from "@/lib/validators/uuid";
 
-function isUuid(s: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    s
-  );
-}
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null;
 }
@@ -56,7 +52,7 @@ export async function POST(req: Request) {
   const applicant_message = getString(raw["applicant_message"]).trim();
   const include_documents = getBool(raw["include_documents"]);
 
-  if (!job_id || !isUuid(job_id)) {
+  if (!job_id || !isUuidLoose(job_id)) {
     return NextResponse.json({ error: "job_id is invalid" }, { status: 400 });
   }
   if (!applicant_message) {

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import StatusBadge from "./StatusBadge";
+import { isUuidLoose } from "@/lib/validators/uuid";
 
 type AdminUserRowLite = {
   role: "admin" | "client_admin";
@@ -50,12 +51,6 @@ function fmt(dt: string) {
   }
 }
 
-function isUuid(s: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    s
-  );
-}
-
 function normalizeApplication(a: ApplicationRaw): ApplicationWithJob | null {
   const j: JobEmbedded | null = Array.isArray(a.job) ? a.job[0] ?? null : a.job;
   if (!j) return null;
@@ -78,7 +73,7 @@ export default async function AdminApplicationsPage({
 }) {
   const sp = await searchParams;
   const jobIdRaw = (sp.job_id ?? "").trim();
-  const jobId = jobIdRaw && isUuid(jobIdRaw) ? jobIdRaw : "";
+  const jobId = jobIdRaw && isUuidLoose(jobIdRaw) ? jobIdRaw : "";
 
   // 1) ログイン必須
   const supabase = await createSupabaseServerClient();

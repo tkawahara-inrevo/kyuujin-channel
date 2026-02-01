@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { isUuidLoose } from "@/lib/validators/uuid";
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null;
@@ -19,14 +20,10 @@ function getNumber(v: unknown): number | null {
   return null;
 }
 
-function isUuid(s: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
-}
-
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const organization_id = (url.searchParams.get("organization_id") ?? "").trim();
-  if (!isUuid(organization_id)) {
+  if (!isUuidLoose(organization_id)){
     return NextResponse.json({ error: "organization_id is required" }, { status: 400 });
   }
 
@@ -60,7 +57,7 @@ export async function POST(req: Request) {
   const title = getString(raw["title"]).trim() || null;
   const body = getString(raw["body"]).trim();
 
-  if (!isUuid(organization_id)) return NextResponse.json({ error: "organization_id is required" }, { status: 400 });
+  if (!isUuidLoose(organization_id)) return NextResponse.json({ error: "organization_id is required" }, { status: 400 });
   if (!rating || rating < 1 || rating > 5) return NextResponse.json({ error: "rating must be 1..5" }, { status: 400 });
   if (!body) return NextResponse.json({ error: "body is required" }, { status: 400 });
 

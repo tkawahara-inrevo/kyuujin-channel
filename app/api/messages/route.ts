@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getAdminAccess } from "@/lib/auth/adminAccess";
+import { isUuidLoose } from "@/lib/validators/uuid";
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null;
@@ -9,11 +10,6 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 
 function getString(v: unknown): string {
   return typeof v === "string" ? v : "";
-}
-
-function isUuid(s: string): boolean {
-  // UUIDの形式(8-4-4-4-12)だけ確認。version/variantは見ない
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 }
 
 type ApplicationRow = {
@@ -42,7 +38,7 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const application_id = (url.searchParams.get("application_id") ?? "").trim();
 
-  if (!isUuid(application_id)) {
+  if (!isUuidLoose(application_id)) {
     return NextResponse.json({ error: "application_id is required" }, { status: 400 });
   }
 
@@ -133,7 +129,7 @@ export async function POST(req: Request) {
   const application_id = getString(raw["application_id"]).trim();
   const body = getString(raw["body"]).trim();
 
-  if (!isUuid(application_id)) return NextResponse.json({ error: "application_id is required" }, { status: 400 });
+  if (!isUuidLoose(application_id))return NextResponse.json({ error: "application_id is required" }, { status: 400 });
   if (!body) return NextResponse.json({ error: "body is required" }, { status: 400 });
 
   const { data: app, error: appErr } = await supabaseAdmin

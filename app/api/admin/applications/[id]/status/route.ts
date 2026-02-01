@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { isUuidLoose } from "@/lib/validators/uuid";
 
 type AdminUserRowLite = {
   role: "admin" | "client_admin";
@@ -11,12 +12,6 @@ type AdminUserRowLite = {
 const STATUSES = ["new", "in_progress", "done", "rejected", "archived"] as const;
 type Status = (typeof STATUSES)[number];
 
-function isUuid(s: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    s
-  );
-}
-
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -24,7 +19,7 @@ export async function PATCH(
   const { id: idRaw } = await params;
   const id = (idRaw ?? "").trim();
 
-  if (!id || !isUuid(id)) {
+  if (!id || !isUuidLoose(id)){
     return NextResponse.json({ error: "Invalid id" }, { status: 400 });
   }
 

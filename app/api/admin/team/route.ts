@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getAdminAccess } from "@/lib/auth/adminAccess";
+import { isUuidLoose } from "@/lib/validators/uuid";
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null;
@@ -9,10 +10,6 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 
 function getString(v: unknown): string {
   return typeof v === "string" ? v : "";
-}
-
-function isUuid(s: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
 }
 
 const ALLOWED_ROLES = new Set(["admin", "staff"]);
@@ -62,7 +59,7 @@ export async function POST(req: Request) {
 
   const user_id = getString(raw["user_id"]).trim();
   const role = getString(raw["role"]).trim().toLowerCase();
-  if (!isUuid(user_id)) return NextResponse.json({ error: "user_id must be uuid" }, { status: 400 });
+  if (!isUuidLoose(user_id)) return NextResponse.json({ error: "user_id must be uuid" }, { status: 400 });
   if (!ALLOWED_ROLES.has(role)) return NextResponse.json({ error: "role must be admin|staff" }, { status: 400 });
 
   const organization_id = access.organization_id;

@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import StatusBadge from "../StatusBadge"; // ✅ 修正（./ → ../）
 import ChatThread from "./ChatThread";
+import { isUuidLoose } from "@/lib/validators/uuid";
 
 type AdminUserRowLite = {
   role: "admin" | "client_admin";
@@ -56,11 +57,6 @@ function fmt(dt: string) {
   }
 }
 
-function isUuid(s: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    s
-  );
-}
 
 function normalizeDetail(a: ApplicationDetailRaw): ApplicationDetail | null {
   const j: JobEmbedded | null = Array.isArray(a.job) ? a.job[0] ?? null : a.job;
@@ -90,7 +86,7 @@ export default async function AdminApplicationDetailPage({
   const { id: idRaw } = await params;
   const id = (idRaw ?? "").trim();
 
-  if (!id || !isUuid(id)) {
+  if (!id || !isUuidLoose(id))  {
     return (
       <main className="mx-auto max-w-3xl px-4 py-10">
         <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6">応募IDが不正です🥺</div>
