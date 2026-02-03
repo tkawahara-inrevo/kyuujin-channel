@@ -193,7 +193,6 @@ export default async function AdminApplicationDetailPage({
   ]}
   title="応募詳細"
   subtitle="応募者の詳細情報"
-  backFallbackHref="/admin/applications"
   actions={
     <Link
       href={`/admin/applications?job_id=${detail.job.id}`}

@@ -168,7 +168,6 @@ export default async function AdminApplicationsPage({
   ]}
   title="応募一覧"
   subtitle="自社求人への応募だけが表示されます"
-  backFallbackHref="/admin"
 />
         {(jobsErr || appsErr) && (
           <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
