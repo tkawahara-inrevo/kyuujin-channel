@@ -13,7 +13,6 @@ export default function AdminJobEditPage() {
     { label: "求人編集" },
   ]}
   title="求人編集"
-  backFallbackHref="/admin"
 />
 
       </div>

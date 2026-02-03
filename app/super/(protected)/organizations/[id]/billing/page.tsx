@@ -84,7 +84,6 @@ const orgName = org?.name ?? "企業";
     { label: "請求" },
   ]}
   title="請求"
-  backFallbackHref={`/super/organizations/${id}`}
 />
 
       <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/80">

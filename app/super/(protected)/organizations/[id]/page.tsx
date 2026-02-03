@@ -32,7 +32,6 @@ export default async function SuperOrgDetailPage({
     { label: data.name },
   ]}
   title={data.name}
-  backFallbackHref="/super/organizations"
 />
       <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/80">
         <div>slug: {data.slug}</div>

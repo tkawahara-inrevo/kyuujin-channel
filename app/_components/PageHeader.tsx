@@ -9,7 +9,6 @@ export default function PageHeader({
   title,
   subtitle,
   crumbs,
-  backFallbackHref,
   backLabel,
   actions,
 }: {
@@ -17,7 +16,6 @@ export default function PageHeader({
   title: string;
   subtitle?: string;
   crumbs: Crumb[];
-  backFallbackHref: string;
   backLabel?: string;
   actions?: React.ReactNode;
 }) {
@@ -48,7 +46,7 @@ export default function PageHeader({
 
         <div className="flex flex-wrap items-center gap-2">
           {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
-          <BackButton variant={variant} fallbackHref={backFallbackHref} label={backLabel} />
+          <BackButton variant={variant} label={backLabel}/>
         </div>
       </div>
     </header>

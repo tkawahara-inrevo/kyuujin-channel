@@ -14,7 +14,6 @@ export default function AdminJobNewPage() {
   ]}
   title="求人作成"
   subtitle="まずは jobs だけで「作成→公開→管理」の体験を完成させる"
-  backFallbackHref="/admin"
 />
       </div>
       <div className="mt-6">

@@ -32,7 +32,6 @@ export default async function AdminBillingPage() {
   ]}
   title="請求"
   subtitle="今月の応募数から請求予定額を表示します（決済は未接続）"
-  backFallbackHref="/admin"
 />
         <BillingClient />
       </div>

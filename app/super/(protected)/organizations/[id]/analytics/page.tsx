@@ -31,7 +31,6 @@ const orgName = org?.name ?? "企業";
     { label: "応募分析" },
   ]}
   title="応募分析"
-  backFallbackHref={`/super/organizations/${id}`}
 />
 
 

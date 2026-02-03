@@ -57,7 +57,7 @@ export default function NewOrganizationForm() {
             className="rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-sm text-white"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="例）かやちゃん株式会社"
+            placeholder="例）A株式会社"
           />
         </label>
 
@@ -67,7 +67,7 @@ export default function NewOrganizationForm() {
             className="rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-sm text-white"
             value={slug}
             onChange={(e) => setSlug(e.target.value)}
-            placeholder="例）kayachan-inc"
+            placeholder="例）a-inc"
           />
         </label>
 

@@ -44,7 +44,6 @@ export default async function AdminAnalyticsPage() {
   ]}
   title="分析"
   subtitle="実データから集計するライト版です"
-  backFallbackHref="/admin"
 />
 
         <div className="mt-6 grid gap-3 md:grid-cols-2">

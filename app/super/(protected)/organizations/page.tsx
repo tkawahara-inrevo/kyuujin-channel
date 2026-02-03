@@ -23,7 +23,6 @@ export default async function SuperOrganizationsPage() {
     { label: "企業一覧" },
   ]}
   title="企業一覧"
-  backFallbackHref="/super"
   actions={
     <Link
       href="/super/organizations/new"
