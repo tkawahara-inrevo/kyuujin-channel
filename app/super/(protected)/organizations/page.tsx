@@ -1,0 +1,41 @@
+// app/super/(protected)/organizations/page.tsx
+import Link from "next/link";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+
+type OrgRow = { id: string; name: string; slug: string; created_at: string };
+
+export default async function SuperOrganizationsPage() {
+  const { data } = await supabaseAdmin
+    .from("organizations")
+    .select("id,name,slug,created_at")
+    .order("created_at", { ascending: false })
+    .limit(200);
+
+  const list = (data ?? []) as OrgRow[];
+
+  return (
+    <div className="grid gap-4">
+      <h1 className="text-2xl font-extrabold tracking-tight">企業一覧</h1>
+
+      <div className="rounded-2xl border border-white/10 bg-white/5">
+        <div className="divide-y divide-white/10">
+          {list.map((o) => (
+            <Link
+              key={o.id}
+              href={`/super/organizations/${o.id}`}
+              className="block px-5 py-4 hover:bg-white/5"
+            >
+              <div className="font-semibold">{o.name}</div>
+              <div className="mt-1 text-xs text-white/70">
+                slug: {o.slug} / id: {o.id}
+              </div>
+            </Link>
+          ))}
+          {list.length === 0 && (
+            <div className="px-5 py-6 text-sm text-white/70">企業がまだないよ🥺</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

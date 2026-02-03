@@ -1,4 +1,4 @@
-// app/admin/login/_components/LoginForm.tsx
+// app/super/login/_components/LoginForm.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -28,19 +28,10 @@ export default function LoginForm() {
         body: JSON.stringify({ email: email.trim(), password }),
       });
 
-      const ct = res.headers.get("content-type") ?? "";
       const text = await res.text();
-      const payload = ct.includes("application/json") ? safeJson(text) : null;
+      if (!res.ok) throw new Error(text || `ログイン失敗（${res.status}）`);
 
-      if (!res.ok) {
-        const msg =
-          (payload && (payload.error || payload.message)) ||
-          text ||
-          `ログイン失敗（${res.status}）`;
-        throw new Error(msg);
-      }
-
-      router.push("/auth/after-login?intent=admin");
+      router.push("/auth/after-login?intent=super");
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "ログインに失敗しました");
@@ -58,7 +49,7 @@ export default function LoginForm() {
             className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="admin@example.com"
+            placeholder="ops@example.com"
           />
         </label>
 
@@ -89,12 +80,4 @@ export default function LoginForm() {
       </div>
     </form>
   );
-}
-
-function safeJson(text: string) {
-  try {
-    return JSON.parse(text);
-  } catch {
-    return null;
-  }
 }
