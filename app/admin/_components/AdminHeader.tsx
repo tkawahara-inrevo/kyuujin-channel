@@ -63,13 +63,6 @@ export default function AdminHeader() {
             ➕ 求人
           </Link>
 
-          <Link
-            href="/admin/organizations/new"
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-          >
-            🏢➕ 企業
-          </Link>
-
           <form action="/api/auth/logout" method="post" className="ml-2">
             <button
               type="submit"

@@ -1,5 +1,7 @@
 // app/super/(protected)/organizations/[id]/analytics/page.tsx
 import { getAdminAnalytics } from "@/lib/analytics/getAnalytics";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import PageHeader from "@/app/_components/PageHeader";
 
 export default async function SuperOrgAnalyticsPage({
   params,
@@ -10,9 +12,28 @@ export default async function SuperOrgAnalyticsPage({
 
   const a = await getAdminAnalytics(id);
 
+const { data: org } = await supabaseAdmin
+  .from("organizations")
+  .select("id,name")
+  .eq("id", id)
+  .maybeSingle();
+
+const orgName = org?.name ?? "企業";
+
   return (
     <div className="grid gap-4">
-      <h1 className="text-2xl font-extrabold tracking-tight">応募分析</h1>
+      <PageHeader
+  variant="super"
+  crumbs={[
+    { label: "運営", href: "/super" },
+    { label: "企業一覧", href: "/super/organizations" },
+    { label: orgName, href: `/super/organizations/${id}` },
+    { label: "応募分析" },
+  ]}
+  title="応募分析"
+  backFallbackHref={`/super/organizations/${id}`}
+/>
+
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <div className="rounded-2xl border border-white/10 bg-white/5 p-5">

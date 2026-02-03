@@ -1,6 +1,7 @@
 // app/super/(protected)/organizations/page.tsx
 import Link from "next/link";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import PageHeader from "@/app/_components/PageHeader";
 
 type OrgRow = { id: string; name: string; slug: string; created_at: string };
 
@@ -15,8 +16,23 @@ export default async function SuperOrganizationsPage() {
 
   return (
     <div className="grid gap-4">
-      <h1 className="text-2xl font-extrabold tracking-tight">企業一覧</h1>
-
+      <PageHeader
+  variant="super"
+  crumbs={[
+    { label: "運営", href: "/super" },
+    { label: "企業一覧" },
+  ]}
+  title="企業一覧"
+  backFallbackHref="/super"
+  actions={
+    <Link
+      href="/super/organizations/new"
+      className="rounded-xl bg-white px-3 py-2 text-sm font-semibold text-black"
+    >
+      🏢➕ 企業追加
+    </Link>
+  }
+/>
       <div className="rounded-2xl border border-white/10 bg-white/5">
         <div className="divide-y divide-white/10">
           {list.map((o) => (

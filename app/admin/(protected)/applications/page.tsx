@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import StatusBadge from "./StatusBadge";
 import { isUuidLoose } from "@/lib/validators/uuid";
+import PageHeader from "@/app/_components/PageHeader";
 
 type AdminUserRowLite = {
   role: "admin" | "client_admin";
@@ -159,22 +160,16 @@ export default async function AdminApplicationsPage({
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 text-slate-900">
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">応募者一覧</h1>
-            <p className="mt-2 text-sm text-slate-700">自社求人への応募だけが表示されます</p>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href="/admin"
-              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50"
-            >
-              ← ダッシュボード
-            </Link>
-          </div>
-        </div>
-
+<PageHeader
+  variant="admin"
+  crumbs={[
+    { label: "ダッシュボード", href: "/admin" },
+    { label: "応募一覧" },
+  ]}
+  title="応募一覧"
+  subtitle="自社求人への応募だけが表示されます"
+  backFallbackHref="/admin"
+/>
         {(jobsErr || appsErr) && (
           <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
             DBエラー：

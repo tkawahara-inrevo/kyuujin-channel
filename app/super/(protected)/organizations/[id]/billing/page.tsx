@@ -1,5 +1,6 @@
 // app/super/(protected)/organizations/[id]/billing/page.tsx
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import PageHeader from "@/app/_components/PageHeader";
 
 type BillingRow = {
   organization_id: string;
@@ -63,9 +64,28 @@ export default async function SuperOrgBillingPage({
   );
   const amount = apps * unit;
 
+const { data: org } = await supabaseAdmin
+  .from("organizations")
+  .select("id,name")
+  .eq("id", id)
+  .maybeSingle();
+
+const orgName = org?.name ?? "企業";
+
+
   return (
     <div className="grid gap-4">
-      <h1 className="text-2xl font-extrabold tracking-tight">請求</h1>
+      <PageHeader
+  variant="super"
+  crumbs={[
+    { label: "運営", href: "/super" },
+    { label: "企業一覧", href: "/super/organizations" },
+    { label: orgName, href: `/super/organizations/${id}` },
+    { label: "請求" },
+  ]}
+  title="請求"
+  backFallbackHref={`/super/organizations/${id}`}
+/>
 
       <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/80">
         <div>plan: <span className="font-bold text-white">{billing.plan}</span></div>

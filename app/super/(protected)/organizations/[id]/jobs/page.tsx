@@ -1,5 +1,6 @@
 // app/super/(protected)/organizations/[id]/jobs/page.tsx
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import PageHeader from "@/app/_components/PageHeader";
 
 type JobRow = {
   id: string;
@@ -24,10 +25,27 @@ export default async function SuperOrgJobsPage({
 
   const list = (data ?? []) as JobRow[];
 
+  const { data: org } = await supabaseAdmin
+  .from("organizations")
+  .select("id,name")
+  .eq("id", id)
+  .maybeSingle();
+
+const orgName = org?.name ?? "企業";
+
   return (
     <div className="grid gap-4">
-      <h1 className="text-2xl font-extrabold tracking-tight">求人</h1>
-
+<PageHeader
+  variant="super"
+  crumbs={[
+    { label: "運営", href: "/super" },
+    { label: "企業一覧", href: "/super/organizations" },
+    { label: orgName, href: `/super/organizations/${id}` },
+    { label: "求人" },
+  ]}
+  title="求人"
+  backFallbackHref={`/super/organizations/${id}`}
+/>
       <div className="rounded-2xl border border-white/10 bg-white/5">
         <div className="divide-y divide-white/10">
           {list.map((j) => (

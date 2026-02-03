@@ -1,7 +1,8 @@
-import Link from "next/link";
+
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getAdminAccess } from "@/lib/auth/adminAccess";
 import { getAdminAnalytics } from "@/lib/analytics/getAnalytics";
+import PageHeader from "@/app/_components/PageHeader";
 
 function fmt(dt: string) {
   try {
@@ -35,18 +36,16 @@ export default async function AdminAnalyticsPage() {
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 text-slate-900">
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex items-end justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">アナリティクス（簡易）</h1>
-            <p className="mt-2 text-sm text-slate-700">実データから集計する“嘘なし”のライト版です</p>
-          </div>
-          <Link
-            href="/admin"
-            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50"
-          >
-            ← ダッシュボード
-          </Link>
-        </div>
+<PageHeader
+  variant="admin"
+  crumbs={[
+    { label: "ダッシュボード", href: "/admin" },
+    { label: "分析" },
+  ]}
+  title="分析"
+  subtitle="実データから集計するライト版です"
+  backFallbackHref="/admin"
+/>
 
         <div className="mt-6 grid gap-3 md:grid-cols-2">
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">

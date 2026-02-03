@@ -5,6 +5,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import StatusBadge from "../StatusBadge"; // ✅ 修正（./ → ../）
 import ChatThread from "./ChatThread";
 import { isUuidLoose } from "@/lib/validators/uuid";
+import PageHeader from "@/app/_components/PageHeader";
 
 type AdminUserRowLite = {
   role: "admin" | "client_admin";
@@ -183,19 +184,25 @@ export default async function AdminApplicationDetailPage({
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 text-slate-900">
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex items-end justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">応募者プロフィール</h1>
-            <p className="mt-2 text-sm text-slate-700">応募者の詳細情報</p>
-          </div>
-
-          <Link
-            href={`/admin/applications?job_id=${detail.job.id}`}
-            className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-          >
-            この求人の応募一覧 →
-          </Link>
-        </div>
+<PageHeader
+  variant="admin"
+  crumbs={[
+    { label: "ダッシュボード", href: "/admin" },
+    { label: "応募一覧", href: "/admin/applications" },
+    { label: "応募詳細" },
+  ]}
+  title="応募詳細"
+  subtitle="応募者の詳細情報"
+  backFallbackHref="/admin/applications"
+  actions={
+    <Link
+      href={`/admin/applications?job_id=${detail.job.id}`}
+      className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+    >
+      同じ求人の応募へ
+    </Link>
+  }
+/>
       </div>
 
       <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
