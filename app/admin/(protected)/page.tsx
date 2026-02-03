@@ -1,11 +1,12 @@
 // app/admin/page.tsx
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 type AdminUserRow = {
   user_id: string;
-  role: "admin" | "client_admin";
+  role: "super_admin" | "client_admin";
   organization_id: string | null;
 };
 
@@ -64,13 +65,7 @@ export default async function AdminDashboardPage({
   const user = userData.user;
 
   if (!user) {
-    return (
-      <main className="mx-auto max-w-3xl px-4 py-10 text-slate-900">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          ログインしてください🥺
-        </div>
-      </main>
-    );
+    redirect("/admin/login");
   }
 
   // 2) admin_users を取得（service role）
@@ -96,103 +91,38 @@ export default async function AdminDashboardPage({
   const au = adminUser as AdminUserRow;
 
   // 3) role別に分岐
-  if (au.role === "client_admin") {
-    if (!au.organization_id) {
-      return (
-        <main className="mx-auto max-w-3xl px-4 py-10 text-slate-900">
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 shadow-sm">
-            organization_id が未設定だよ🥺（client_adminは必須）
-          </div>
-        </main>
-      );
-    }
-    return <ClientAdminDashboard organizationId={au.organization_id} q={q} status={status} />;
+  // super_admin が /admin に来ちゃったら、/super に誘導（入口ミス救済）
+  if (au.role === "super_admin") {
+    redirect("/super");
   }
 
-  return <SuperAdminDashboard />;
-}
-
-/* ---------------- Super Admin ---------------- */
-
-async function SuperAdminDashboard() {
-  const { data: orgs, error: orgErr } = await supabaseAdmin
-    .from("organizations")
-    .select("id,name,slug,created_at")
-    .order("created_at", { ascending: false })
-    .limit(8);
-
-  const orgList = (orgs ?? []) as OrgRow[];
-
-  const { count: orgCount, error: orgCountErr } = await supabaseAdmin
-    .from("organizations")
-    .select("*", { count: "exact", head: true });
-
-  return (
-    <main className="mx-auto max-w-6xl px-4 py-8 text-slate-900">
-      <Header
-        title="スーパーアドミン ダッシュボード"
-        subtitle="運営用（企業の追加・状況把握）"
-        actions={
-          <>
-            <Link
-              href="/admin/organizations/new"
-              className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-            >
-              🏢➕ 企業を追加
+  // 企業admin以外はここで止める
+  if (au.role !== "client_admin") {
+    return (
+      <main className="mx-auto max-w-3xl px-4 py-10 text-slate-900">
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 shadow-sm">
+          このページは企業アドミン専用だよ🥺
+          <div className="mt-3">
+            <Link href="/super" className="underline">
+              運営コンソールへ
             </Link>
-            <Link
-              href="/admin/jobs/new"
-              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50"
-            >
-              ➕ 新規求人
-            </Link>
-          </>
-        }
-      />
-
-      {(orgErr || orgCountErr) && (
-        <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-          DBエラー：
-          {orgErr?.message ? <div className="mt-1">{orgErr.message}</div> : null}
-          {orgCountErr?.message ? <div className="mt-1">{orgCountErr.message}</div> : null}
+          </div>
         </div>
-      )}
+      </main>
+    );
+  }
 
-      <div className="mt-6 grid gap-3 md:grid-cols-3">
-        <StatCard label="総企業数" value={orgCount ?? 0} />
-        <StatCard label="最近追加（表示中）" value={orgList.length} />
-        <StatCard label="企業追加へ" valueText="→" href="/admin/organizations/new" />
-      </div>
+  if (!au.organization_id) {
+    return (
+      <main className="mx-auto max-w-3xl px-4 py-10 text-slate-900">
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 shadow-sm">
+          organization_id が未設定だよ🥺（client_adminは必須）
+        </div>
+      </main>
+    );
+  }
 
-      <section className="mt-8">
-        <SectionTitle title="最近追加された企業" />
-        {orgList.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 text-slate-800 shadow-sm">
-            まだ企業がないよ🥺（右上の「企業を追加」から作ってね）
-          </div>
-        ) : (
-          <div className="grid gap-3">
-            {orgList.map((o) => (
-              <Link
-                key={o.id}
-                href={`/admin/organizations/${o.id}`}
-                className="block rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md hover:ring-1 hover:ring-blue-100"
-              >
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="text-base font-semibold text-slate-900">{o.name}</div>
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-900">
-                    slug: {o.slug}
-                  </span>
-                  <div className="ml-auto text-xs text-slate-700">{fmt(o.created_at)}</div>
-                </div>
-                <div className="mt-3 text-xs text-slate-700">organization_id: {o.id}</div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
-    </main>
-  );
+  return <ClientAdminDashboard organizationId={au.organization_id} q={q} status={status} />;
 }
 
 /* ---------------- Client Admin ---------------- */
@@ -235,7 +165,7 @@ async function ClientAdminDashboard({
   const { data: jobs, error: jobsErr } = await jobsQuery;
   const list = (jobs ?? []) as JobRowWithAppsCount[];
 
-  // 集計は “全件” を見る（カードが常にトリガーになるように）
+  // 集計は “全件” を見る
   const { data: allJobs } = await supabaseAdmin
     .from("jobs")
     .select("status")
@@ -286,7 +216,7 @@ async function ClientAdminDashboard({
         </div>
       )}
 
-      {/* 🔎 求人検索（ダッシュボード内完結） */}
+      {/* 🔎 求人検索 */}
       <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="text-base font-semibold text-slate-900">求人検索</div>
 
@@ -297,7 +227,6 @@ async function ClientAdminDashboard({
             placeholder="キーワード検索（求人タイトル）"
             className="w-72 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
           />
-          {/* status は hidden で維持（キーワード検索中にステータスを保つ） */}
           <input type="hidden" name="status" value={activeStatus} />
 
           <button
@@ -313,60 +242,62 @@ async function ClientAdminDashboard({
           >
             リセット
           </Link>
-
-          {(q || activeStatus) && (
-            <div className="ml-auto text-sm text-slate-600">
-              フィルタ：
-              {q ? (
-                <span className="ml-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold">
-                  q: {q}
-                </span>
-              ) : null}
-              {activeStatus ? (
-                <span className="ml-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold">
-                  status: {activeStatus}
-                </span>
-              ) : null}
-            </div>
-          )}
         </form>
       </section>
 
-      {/* ステータスカード：検索起爆剤 */}
-      <div className="mt-6 grid gap-3 md:grid-cols-4">
-        <StatCard
-          label="自社求人（直近）"
-          value={counts.total ?? 0}
-          href={q ? `/admin?q=${encodeURIComponent(q)}` : "/admin"}
-          active={!activeStatus}
-        />
-        <StatCard
+      {/* 📌 ステータスカード */}
+      <section className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-4">
+        <StatusCard label="総数" count={counts.total} active={!status} href={`/admin?q=${encodeURIComponent(q)}`} />
+        <StatusCard
           label="下書き"
-          value={counts.draft ?? 0}
-          href={q ? `/admin?status=draft&q=${encodeURIComponent(q)}` : "/admin?status=draft"}
-          active={activeStatus === "draft"}
+          count={counts.draft}
+          active={status === "draft"}
+          href={`/admin?status=draft&q=${encodeURIComponent(q)}`}
         />
-        <StatCard
+        <StatusCard
           label="公開中"
-          value={counts.published ?? 0}
-          href={
-            q
-              ? `/admin?status=published&q=${encodeURIComponent(q)}`
-              : "/admin?status=published"
-          }
-          active={activeStatus === "published"}
+          count={counts.published}
+          active={status === "published"}
+          href={`/admin?status=published&q=${encodeURIComponent(q)}`}
         />
-        <StatCard
-          label="募集終了"
-          value={counts.closed ?? 0}
-          href={q ? `/admin?status=closed&q=${encodeURIComponent(q)}` : "/admin?status=closed"}
-          active={activeStatus === "closed"}
+        <StatusCard
+          label="終了"
+          count={counts.closed}
+          active={status === "closed"}
+          href={`/admin?status=closed&q=${encodeURIComponent(q)}`}
         />
-      </div>
+      </section>
 
-      <section className="mt-8">
-        <SectionTitle title="求人一覧" />
-        <JobList jobs={list} />
+      {/* 🧾 最新求人 */}
+      <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div className="text-base font-semibold text-slate-900">最新の求人</div>
+          <Link href="/admin/jobs/new" className="text-sm font-semibold text-blue-700 underline">
+            ➕ 作成する
+          </Link>
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+          {list.map((j) => (
+            <Link
+              key={j.id}
+              href={`/admin/jobs/${j.id}`}
+              className="rounded-2xl border border-slate-200 bg-white p-4 hover:bg-slate-50"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="font-semibold">{j.title}</div>
+                <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">
+                  {j.status}
+                </span>
+              </div>
+              <div className="mt-2 text-xs text-slate-600">作成: {fmt(j.created_at)}</div>
+              <div className="mt-1 text-xs text-slate-600">
+                応募: {(j.applications?.[0]?.count ?? 0).toString()}
+              </div>
+            </Link>
+          ))}
+          {list.length === 0 && <div className="text-sm text-slate-600">求人がまだないよ🥺</div>}
+        </div>
       </section>
     </main>
   );
@@ -381,141 +312,49 @@ function Header({
   actions,
 }: {
   title: string;
-  subtitle: string;
+  subtitle?: string;
   badge?: string;
   actions?: React.ReactNode;
 }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">{title}</h1>
-          <p className="mt-2 text-sm text-slate-800">{subtitle}</p>
-          {badge && <div className="mt-2 text-xs text-slate-700">{badge}</div>}
+          <div className="text-2xl font-extrabold tracking-tight">{title}</div>
+          {subtitle ? <div className="mt-1 text-sm text-slate-600">{subtitle}</div> : null}
+          {badge ? (
+            <div className="mt-2 inline-block rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+              {badge}
+            </div>
+          ) : null}
         </div>
-        <div className="flex flex-wrap gap-2">{actions}</div>
+        {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
       </div>
     </div>
   );
 }
 
-function StatCard({
+function StatusCard({
   label,
-  value,
-  valueText,
-  href,
+  count,
   active,
+  href,
 }: {
   label: string;
-  value?: number;
-  valueText?: string;
-  href?: string;
-  active?: boolean;
+  count: number;
+  active: boolean;
+  href: string;
 }) {
-  const inner = (
-    <div
+  return (
+    <Link
+      href={href}
       className={[
-        "rounded-2xl border bg-white p-5 shadow-sm",
-        active ? "border-blue-200 ring-1 ring-blue-100" : "border-slate-200",
+        "rounded-2xl border p-5 shadow-sm transition",
+        active ? "border-blue-200 bg-blue-50" : "border-slate-200 bg-white hover:bg-slate-50",
       ].join(" ")}
     >
-      <div className="text-sm text-slate-800">{label}</div>
-      <div className="mt-2 text-3xl font-bold text-slate-900">
-        {typeof value === "number" ? value : valueText ?? 0}
-      </div>
-    </div>
+      <div className="text-sm font-semibold text-slate-700">{label}</div>
+      <div className="mt-2 text-3xl font-extrabold text-slate-900">{count}</div>
+    </Link>
   );
-
-  if (href) {
-    return (
-      <Link href={href} className="block hover:opacity-95">
-        {inner}
-      </Link>
-    );
-  }
-  return inner;
-}
-
-function SectionTitle({ title }: { title: string }) {
-  return <h2 className="mb-3 text-lg font-semibold text-slate-900">{title}</h2>;
-}
-
-function JobList({ jobs }: { jobs: JobRowWithAppsCount[] }) {
-  if (jobs.length === 0) {
-    return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 text-slate-800 shadow-sm">
-        まだ求人がないよ
-      </div>
-    );
-  }
-
-  return (
-    <div className="grid gap-3">
-      {jobs.map((j) => {
-        const appCount =
-          j.applications.length > 0 && typeof j.applications[0].count === "number"
-            ? j.applications[0].count
-            : 0;
-
-        return (
-          <div
-            key={j.id}
-            className="relative rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md hover:ring-1 hover:ring-blue-100"
-          >
-            {/* ✅ カード全体クリック用の透明リンク（求人編集へ） */}
-            <Link
-              href={`/admin/jobs/${j.id}`}
-              className="absolute inset-0 rounded-2xl"
-              aria-label={`${j.title} を編集`}
-            />
-
-            {/* ✅ 中身は前面に（応募リンクなどが押せる） */}
-            <div className="relative z-10">
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="text-base font-semibold text-slate-900">{j.title}</div>
-
-                <StatusPill status={j.status} />
-
-                {appCount > 0 ? (
-                  <Link
-                    href={`/admin/applications?job_id=${encodeURIComponent(j.id)}`}
-                    className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-100"
-                  >
-                    応募 {appCount}件
-                  </Link>
-                ) : (
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                    応募 0件
-                  </span>
-                )}
-
-                <div className="ml-auto text-xs text-slate-700">{fmt(j.created_at)}</div>
-              </div>
-
-              <div className="mt-3 flex flex-wrap gap-2 text-sm text-slate-900">
-                {j.location && <Tag>📍 {j.location}</Tag>}
-                {j.employment_type && <Tag>🧩 {j.employment_type}</Tag>}
-                {j.salary && <Tag>💰 {j.salary}</Tag>}
-              </div>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-
-function Tag({ children }: { children: React.ReactNode }) {
-  return <span className="rounded-full bg-slate-100 px-3 py-1 text-slate-900">{children}</span>;
-}
-
-function StatusPill({ status }: { status: "draft" | "published" | "closed" }) {
-  const map: Record<typeof status, { label: string; cls: string }> = {
-    draft: { label: "下書き", cls: "bg-slate-100 text-slate-900" },
-    published: { label: "公開中", cls: "bg-emerald-100 text-emerald-900" },
-    closed: { label: "募集終了", cls: "bg-rose-100 text-rose-900" },
-  };
-  const s = map[status];
-  return <span className={`rounded-full px-3 py-1 text-xs font-semibold ${s.cls}`}>{s.label}</span>;
 }
